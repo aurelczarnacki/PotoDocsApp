@@ -64,14 +64,10 @@ PotoDocs
 <img src="Screenshots/Icons/css.svg.png" width=70 height=100>
 &nbsp;&nbsp;
 <img src="Screenshots/Icons/gpt.png" width=100 height=100>
-&nbsp;&nbsp;
-<img src="Screenshots/Icons/mariadb.png" width=100 height=100>
 
 </p>
 
-<p align=center>
-&nbsp;&nbsp;&nbsp; C# &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .NET &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Blazor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HTML &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CSS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; OpenAI &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MariaDB
-</p>
+
 ---
 
 ## 🚀 Installation & Setup  
@@ -80,25 +76,44 @@ PotoDocs
 ```bash
 git clone https://github.com/your-username/PotoDocs.git
 cd PotoDocs
-2️⃣ Backend Setup
+```
+
+### 2️⃣ Backend Setup
 Install .NET SDK
-Configure MariaDB/MySQL and update connection settings in appsettings.json
+
+Configure Database (MariaDB was used in the project) and update connection settings in appsettings.json
+
 Run migrations (if applicable):
-bash
-Kopiuj
-Edytuj
+```bash
 dotnet ef database update
+```
+
 Start the API:
-bash
-Kopiuj
-Edytuj
+```bash
 cd PotoDocs.API
 dotnet run
-3️⃣ Frontend Setup
+```
+
+### 3️⃣ Frontend Setup
 Install dependencies (if needed)
+
 Run the Blazor app
-bash
-Kopiuj
-Edytuj
+```bash
 cd PotoDocs.Blazor
 dotnet run
+```
+## 📸 More screenshots
+<p>
+<img src="Screenshots/Screeenshot_Mainpage.png" height=385 width=734>
+
+<img src="Screenshots/Screeenshot_Edit.png" height=385 width=211>
+</p>
+<p>
+<img src="Screenshots/Screeenshot_Details.png" height=385 width=211>
+
+<img src="Screenshots/Screeenshot_Figma.png" height=385 width=734>
+</p>
+
+## 👥 Authors
+- Aureliusz Czarnacki
+- Patryk Suchecki
