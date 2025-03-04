@@ -4,7 +4,7 @@
 
 <img src="Screenshots/Screeenshot_login.png" height=385 width=211 align=right>
 
-🚛 **PotoDocs** is a transport order management system that allows users to store, manage, and process transport orders, generate invoices using an AI-based API, and handle document storage and user roles.  
+🚛 **PotoDocs** is a transport order management system that allows users to store, manage, and process transport orders, generate new orders based on uploaded documents using an AI-based API, generate invoices and handle document storage and user roles.  
 
 💡 The application is **fully responsive**, meaning it works seamlessly on both desktop and mobile devices.  
 
@@ -32,7 +32,9 @@ PotoDocs
 
 ✅ Calculation and display of order status
 
-✅ Generate invoices based on orders (via GPT-powered API). 
+✅ Generate orders based on documents (via GPT-powered API). 
+
+✅ Generate invoices
 
 ✅ Store and manage transport-related documents.
 
@@ -65,6 +67,10 @@ PotoDocs
 &nbsp;&nbsp;
 <img src="Screenshots/Icons/mariadb.png" width=100 height=100>
 
+</p>
+
+<p>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; C# &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .NET &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Blazor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HTML &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CSS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; OpenAI &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MariaDB
 </p>
 ---
 
