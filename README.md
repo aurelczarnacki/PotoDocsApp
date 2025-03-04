@@ -104,14 +104,14 @@ dotnet run
 ```
 ## 📸 More screenshots
 <p>
-<img src="Screenshots/Screeenshot_Mainpage.png" height=385 width=734>
+<img src="Screenshots/Screeenshot_Mainpage.png" height=308 width=587>
 
-<img src="Screenshots/Screeenshot_Edit.png" height=385 width=211>
+<img src="Screenshots/Screeenshot_Edit.png" height=308 width=168>
 </p>
 <p>
-<img src="Screenshots/Screeenshot_Details.png" height=385 width=211>
+<img src="Screenshots/Screeenshot_Details.png" height=308 width=168>
 
-<img src="Screenshots/Screeenshot_Figma.png" height=385 width=734>
+<img src="Screenshots/Screeenshot_Figma.png" height=308 width=587>
 </p>
 
 ## 👥 Authors
