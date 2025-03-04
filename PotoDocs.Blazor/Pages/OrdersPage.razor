@@ -1,0 +1,240 @@
+﻿@attribute [Authorize]
+@page "/zlecenia"
+@inject IOrderService OrderService
+@inject NavigationManager Navigation
+@inject IToastService toastService
+@inject IBlazorDownloadFileService BlazorDownloadFileService
+@inject IModalService Modal
+
+<PageTitle>Wszystkie zlecenia</PageTitle>
+
+<div class="orders-container">
+    <div class="header">
+        <h2>Wszystkie zlecenia</h2>
+        <div class="controls">
+            <button class="refresh-button" @onclick="GetAllOrders" disabled="@IsBusy">
+                <img src="images/icon_refresh.png" alt="Odśwież" />
+            </button>
+        </div>
+    </div>
+
+    @if (IsBusy)
+    {
+        <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden">Ładowanie...</span>
+        </div>
+    }
+    else
+    {
+
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Nazwa firmy</th>
+                    <th>Kierowca</th>
+                    <th>Załadunek</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Orders == null || Orders.Count == 0)
+                {
+                    <tr>
+                        <td colspan="4">Brak dostępnych zleceń.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var order in Orders)
+                    {
+                        bool isExpanded = ExpandedOrderId == order.InvoiceNumber;
+                        string rowClass = isExpanded ? "order-item selected-row" : "order-item";
+
+                        <tr class="@rowClass" @onclick="() => ToggleOrderActions(order.InvoiceNumber)">
+                            <td class="company-name-text">@order.CompanyName</td>
+                            <td class="driver-text">@(order.Driver != null ? order.Driver.FirstAndLastName : "Brak kierowcy")</td>
+                            <td class="date-text">@(order.LoadingDate?.ToString("dd.MM.yyyy") ?? "Brak daty")</td>
+
+                            @* TUTAJ STATUS *@
+
+                            <td class="status-text @(order.HasPaid == true ? "status-paid" : (order.CMRFiles == null || order.CMRFiles.Count != 0 ? "status-unpaid" : "status-nocmr"))">@(order.HasPaid == true ? "Zapłacono" : (order.CMRFiles == null || order.CMRFiles.Count != 0 ? "Nie zapłacono" : "Brak CMR"))</td>
+                        </tr>
+                        @if (isExpanded)
+                        {
+                            <tr>
+                                <td colspan="4">
+                                    <div class="order-actions">
+                                        <button class="details-button" @onclick="() => ViewOrderDetails(order)">
+                                            <img src="Images/icon_neworder.png" alt="Details" class="button-image" />Szczegóły
+                                        </button>
+                                        <button class="edit-button" @onclick="() => EditOrder(order)">
+                                            <img src="Images/icon_edit.png" alt="Edit" class="button-image" />Edytuj
+                                        </button>
+                                        <button class="invoice-button" @onclick="() => DownloadInvoice(order)">
+                                            <img src="Images/icon_download.png" alt="Download" class="button-image" />Faktura
+                                        </button>
+                                        <button class="delete-button" @onclick="() => DeleteOrder(order)">
+                                            <img src="Images/icon_delete.png" alt="Delete" class="button-image" />Usuń
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+            }
+            </tbody>
+        </table>
+    }
+    <div class="load-more-container">
+        <button @onclick="ShowMoreOrders" class="load-more-button">Pokaż więcej</button>
+    </div>
+</div>
+
+@code {
+    private List<OrderDto> Orders { get; set; } = new List<OrderDto>();
+    private bool IsBusy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAllOrders();
+    }
+
+    private async Task GetAllOrders()
+    {
+        try
+        {
+            IsBusy = true;
+            Orders = (await OrderService.GetAll()).ToList();
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Błąd: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task ShowMoreOrders()
+    {
+        try
+        {
+            IsBusy = true;
+
+            var ordersList = Orders.ToList();
+
+            if (ordersList.Count % 5 == 0)
+            {
+                int currentPage = ordersList.Count / 5 + 1;
+                var newOrders = await OrderService.GetAll(currentPage, 5);
+
+                if (newOrders?.Any() == true)
+                {
+                    ordersList.AddRange(newOrders);
+                    Orders = ordersList;
+                }
+            }
+            else
+            {
+                toastService.ShowInfo($"Brak zleceń do pobrania.");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Błąd: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void EditOrder(OrderDto order)
+    {
+        if (order != null)
+        {
+            var orderJson = Uri.EscapeDataString(JsonSerializer.Serialize(order));
+            Navigation.NavigateTo($"/zlecenie/edycja?order={orderJson}");
+        }
+    }
+
+    private void ViewOrderDetails(OrderDto order)
+    {
+        if (order != null)
+        {
+            var orderJson = Uri.EscapeDataString(JsonSerializer.Serialize(order));
+            Navigation.NavigateTo($"/zlecenie/szczegoly?order={orderJson}");
+        }
+    }
+
+    private async Task DownloadInvoice(OrderDto order)
+    {
+        if (order == null) return;
+
+        try
+        {
+            IsBusy = true;
+            string name = OrderService.FormatInvoiceNumber(order.InvoiceNumber);
+            var fileBytes = await OrderService.DownloadInvoice(order.InvoiceNumber);
+
+            await BlazorDownloadFileService.DownloadFile(name, fileBytes, "application/pdf");
+
+            toastService.ShowSuccess($"Pobrano {name}");
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Błąd podczas pobierania faktury: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task DeleteOrder(OrderDto order)
+    {
+        if (order == null) return;
+
+        var parameters = new ModalParameters();
+        string name = OrderService.FormatInvoiceNumber(order.InvoiceNumber);
+        parameters.Add("Message", $"Czy na pewno chcesz usunąć zlecenie {name}?");
+
+        var modalRef = Modal.Show<ConfirmDialog>("Potwierdzenie", parameters);
+        var result = await modalRef.Result;
+
+        if (!result.Cancelled)
+        {
+            try
+            {
+                IsBusy = true;
+                await OrderService.Delete(order.InvoiceNumber);
+                await GetAllOrders();
+                
+                toastService.ShowSuccess($"Pomyślnie usunięto zlecenie {name}");
+            }
+            catch (Exception ex)
+            {
+                toastService.ShowError($"Błąd podczas usuwania zlecenia: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+    }
+
+    private int? ExpandedOrderId { get; set; }
+
+    private void ToggleOrderActions(int orderId)
+    {
+        if (ExpandedOrderId == orderId)
+        {
+            ExpandedOrderId = null; // Zamknij, jeśli już jest otwarte
+        }
+        else
+        {
+            ExpandedOrderId = orderId; // Otwórz nowe
+        }
+    }
+}
