@@ -8,7 +8,7 @@
 
 💡 The application is **fully responsive**, meaning it works seamlessly on both desktop and mobile devices.  
 
-⚪🔴 This application was developed only in the Polish language version
+⚪🔴 This application was developed only in the Polish language version.
 
 ### 📂 Project Structure  
 PotoDocs 
@@ -22,25 +22,50 @@ PotoDocs
   
   
 
-<img src="Screenshots/Screeenshot_allOrders.png" height=321 width=176 align=left>
+
 
 ## 🔥 Key Features  
-✅ Store and manage transport orders.  
-✅ Generate invoices based on orders (via GPT-powered API).  
-✅ Store and manage transport-related documents.  
-✅ User role management with different access levels.  
-✅ Auto-generated passwords sent via email.  
-✅ Download invoices for a specific time period.  
-✅ **Fully responsive UI** – works on both **desktop & mobile**.  
+
+<img src="Screenshots/Screeenshot_allOrders.png" height=385 width=211 align=left>
+
+✅ Store and manage transport orders.
+
+✅ Calculation and display of order status
+
+✅ Generate invoices based on orders (via GPT-powered API). 
+
+✅ Store and manage transport-related documents.
+
+✅ User role management with different access levels.
+
+✅ Auto-generated passwords sent via email.
+
+✅ Download invoices for a specific time period.
+
+✅ **Fully responsive UI** – works on both **desktop & mobile**.
+
 ✅ Frontend designed based on a **Figma prototype**.  
 
 ---
 
 ## 🛠 Tech Stack  
-- **Backend**: .NET, MariaDB (MySQL)  
-- **Frontend**: Blazor  
-- **Shared Components**: DTOs shared between frontend and backend  
+<p align=center> 
+  <img src="Screenshots/Icons/csharp.svg.png" width=90 height=100>
+&nbsp;
+  &nbsp;
+<img src="Screenshots/Icons/Net.svg.png" width=100 height=100>
+&nbsp;&nbsp;
+<img src="Screenshots/Icons/Blazor.png" width=100 height=100 style="margin-right: 20">
+  &nbsp;&nbsp;
+<img src="Screenshots/Icons/html.svg.png" width=100 height=100>
+&nbsp;&nbsp;
+<img src="Screenshots/Icons/css.svg.png" width=70 height=100>
+&nbsp;&nbsp;
+<img src="Screenshots/Icons/gpt.png" width=100 height=100>
+&nbsp;&nbsp;
+<img src="Screenshots/Icons/mariadb.png" width=100 height=100>
 
+</p>
 ---
 
 ## 🚀 Installation & Setup  
