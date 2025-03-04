@@ -1,10 +1,28 @@
+
+
 # 📦 PotoDocs  
+
+<img src="Screenshots/Screeenshot_login.png" height=385 width=211 align=right>
 
 🚛 **PotoDocs** is a transport order management system that allows users to store, manage, and process transport orders, generate invoices using an AI-based API, and handle document storage and user roles.  
 
 💡 The application is **fully responsive**, meaning it works seamlessly on both desktop and mobile devices.  
 
-![Login page](Screenshots/Screenshot_login.png)
+⚪🔴 This application was developed only in the Polish language version
+
+### 📂 Project Structure  
+PotoDocs 
+
+  │── 📂 PotoDocs.API # Backend API (database connection, business logic) 
+  
+  │── 📂 PotoDocs.Shared # Shared DTOs for API and frontend 
+  
+  │── 📂 PotoDocs.Blazor # Frontend (Blazor)  
+  
+  
+  
+
+<img src="Screenshots/Screeenshot_allOrders.png" height=321 width=176 align=left>
 
 ## 🔥 Key Features  
 ✅ Store and manage transport orders.  
@@ -22,12 +40,6 @@
 - **Backend**: .NET, MariaDB (MySQL)  
 - **Frontend**: Blazor  
 - **Shared Components**: DTOs shared between frontend and backend  
-
-### 📂 Project Structure  
-PotoDocs 
-  │── PotoDocs.API # Backend API (database connection, business logic) 
-  │── PotoDocs.Shared # Shared DTOs for API and frontend 
-  │── PotoDocs.Blazor # Frontend (Blazor)
 
 ---
 
