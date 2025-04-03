@@ -5,18 +5,21 @@ using PotoDocs.API.Entities;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using System.Net;
+using PotoDocs.API.Exceptions;
 
 namespace PotoDocs.API.Services;
 
 public interface IUserService
 {
-    ApiResponse<string> Register(UserDto dto);
-    ApiResponse<string> ChangePassword(ChangePasswordDto dto);
-    ApiResponse<string> GeneratePassword(string email);
-    ApiResponse<List<UserDto>> GetAll();
-    ApiResponse<UserDto> GetById(int id);
-    void Delete(string email);
+    Task RegisterAsync(UserDto dto);
+    Task ChangePasswordAsync(ChangePasswordDto dto);
+    Task GeneratePasswordAsync(string email);
+    Task<List<UserDto>> GetAllAsync();
+    Task<UserDto> GetByIdAsync(Guid id);
+    Task DeleteAsync(string email);
 }
+
+
 
 public class UserService : IUserService
 {
@@ -25,50 +28,118 @@ public class UserService : IUserService
     private readonly IPasswordHasher<User> _hasher;
     private readonly IMapper _mapper;
 
-    public UserService(PotodocsDbContext context, IPasswordHasher<User> hasher, IMapper mapper, ITokenService tokenService, IEmailService emailService)
+    public UserService(
+        PotodocsDbContext context,
+        IPasswordHasher<User> hasher,
+        IMapper mapper,
+        ITokenService tokenService,
+        IEmailService emailService)
     {
         _context = context;
         _hasher = hasher;
         _mapper = mapper;
         _emailService = emailService;
     }
-    public ApiResponse<string> Register(UserDto dto)
-    {
-        var role = _context.Roles.FirstOrDefault(r => r.Name == dto.Role);
 
-        if (role == null)
-        {
-            return ApiResponse<string>.Failure($"Rola '{dto.Role}' nie istnieje.", HttpStatusCode.BadRequest);
-        }
-        var user = _context.Users.FirstOrDefault(u => u.Email == dto.Email);
+    public async Task RegisterAsync(UserDto dto)
+    {
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == dto.Role)
+            ?? throw new BadRequestException($"Rola '{dto.Role}' nie istnieje.");
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+
         if (user == null)
         {
             user = _mapper.Map<User>(dto);
             string randomPassword = GenerateRandomPassword(12);
-            _emailService.SendEmail(dto.Email, "Rejestracja PotoDocs", $"Witaj, Twoje dane do logowania to:\nEmail: {dto.Email}\nHasło: {randomPassword}", $@"
-            <html>
-                <body>
-                    <h1>Witaj!</h1>
-                    <p>Twoje dane do logowania:</p>
-                    <p><b>Email:</b> {dto.Email}</p>
-                    <p><b>Hasło:</b> {randomPassword}</p>
-                    <p>Prosimy o zachowanie tych informacji w bezpiecznym miejscu.</p>
-                </body>
-            </html>");
-            var hashedPassword = _hasher.HashPassword(user, randomPassword);
-            user.PasswordHash = hashedPassword;
-            _context.Users.Add(user);
+
+            var placeholders = new Dictionary<string, string>
+            {
+                { "email", dto.Email },
+                { "password", randomPassword },
+                { "name", dto.FirstName },
+                { "lastname", dto.LastName }
+            };
+
+            string emailBody = LoadEmailTemplate("welcome.html", placeholders);
+
+            await _emailService.SendEmailAsync(dto.Email, "Witaj w PotoDocs 🚚", "Twoje dane do logowania", emailBody);
+
+            user.PasswordHash = _hasher.HashPassword(user, randomPassword);
+            await _context.Users.AddAsync(user);
         }
         else
         {
             _mapper.Map(dto, user);
         }
+
         user.Role = role;
-        _context.SaveChanges();
-        return ApiResponse<string>.Success(HttpStatusCode.Created);
+        await _context.SaveChangesAsync();
     }
 
-    public string GenerateRandomPassword(int length)
+    public async Task ChangePasswordAsync(ChangePasswordDto dto)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email)
+            ?? throw new BadRequestException("Nie znaleziono użytkownika");
+
+        var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.OldPassword);
+        if (result == PasswordVerificationResult.Failed)
+            throw new UnauthorizedAccessException("Nieprawidłowe hasło");
+
+        user.PasswordHash = _hasher.HashPassword(user, dto.NewPassword);
+
+        var placeholders = new Dictionary<string, string>
+        {
+            { "email", user.Email },
+            { "password", dto.NewPassword },
+            { "name", user.FirstName },
+            { "lastname", user.LastName }
+        };
+
+        string emailBody = LoadEmailTemplate("reset-password.html", placeholders);
+
+        await _emailService.SendEmailAsync(user.Email, "Resetowanie hasła", "Twoje nowe hasło", emailBody);
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task GeneratePasswordAsync(string email)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email)
+            ?? throw new BadRequestException("Nie znaleziono użytkownika");
+
+        string randomPassword = GenerateRandomPassword(12);
+        user.PasswordHash = _hasher.HashPassword(user, randomPassword);
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<UserDto>> GetAllAsync()
+    {
+        var users = await _context.Users.Include(u => u.Role).ToListAsync();
+        return _mapper.Map<List<UserDto>>(users);
+    }
+
+    public async Task<UserDto> GetByIdAsync(Guid id)
+    {
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == id)
+            ?? throw new UnauthorizedAccessException("Nie znaleziono użytkownika");
+
+        return _mapper.Map<UserDto>(user);
+    }
+
+    public async Task DeleteAsync(string email)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null) return;
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+    }
+
+    private string GenerateRandomPassword(int length)
     {
         const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
         var random = new Random();
@@ -76,76 +147,26 @@ public class UserService : IUserService
 
         for (int i = 0; i < length; i++)
         {
-            chars[i] = validChars[random.Next(0, validChars.Length)];
+            chars[i] = validChars[random.Next(validChars.Length)];
         }
 
         return new string(chars);
     }
 
-    public ApiResponse<string> ChangePassword(ChangePasswordDto dto)
+    private string LoadEmailTemplate(string templateName, Dictionary<string, string> placeholders)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Email == dto.Email);
-        if (user is null)
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "emails", templateName);
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Nie znaleziono szablonu e-maila: {filePath}");
+
+        string content = File.ReadAllText(filePath);
+
+        foreach (var kv in placeholders)
         {
-            return ApiResponse<string>.Failure($"Nie znaleziono użytkownika", HttpStatusCode.BadRequest);
+            content = content.Replace($"{{{kv.Key}}}", kv.Value);
         }
-        var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.OldPassword);
-        if (result == PasswordVerificationResult.Failed)
-        {
-            return ApiResponse<string>.Failure("Nieprawidłowe hasło", HttpStatusCode.Unauthorized);
-        }
-        var newPasswordHash = _hasher.HashPassword(user, dto.NewPassword);
-        user.PasswordHash = newPasswordHash;
-        _context.SaveChanges();
-        return ApiResponse<string>.Success(HttpStatusCode.OK);
-    }
-    public ApiResponse<string> GeneratePassword(string email)
-    {
-        var user = _context.Users.FirstOrDefault(u => u.Email == email);
-        if (user is null)
-        {
-            return ApiResponse<string>.Failure($"Nie znaleziono użytkownika", HttpStatusCode.BadRequest);
-        }
-        string randomPassword = GenerateRandomPassword(12);
-        _emailService.SendEmail(email, "Rejestracja PotoDocs", $"Witaj, Twoje dane do logowania to:\nEmail: {email}\nHasło: {randomPassword}", $@"
-        <html>
-            <body>
-                <h1>Witaj!</h1>
-                <p>Twoje dane do logowania:</p>
-                <p><b>Email:</b> {email}</p>
-                <p><b>Hasło:</b> {randomPassword}</p>
-                <p>Prosimy o zachowanie tych informacji w bezpiecznym miejscu.</p>
-            </body>
-        </html>");
-        var newPasswordHash = _hasher.HashPassword(user, randomPassword);
-        user.PasswordHash = newPasswordHash;
-        _context.SaveChanges();
-        return ApiResponse<string>.Success(HttpStatusCode.OK);
-    }
-    public ApiResponse<List<UserDto>> GetAll()
-    {
-        var users = _context.Users.Include(u => u.Role).ToList();
 
-        var usersDto = _mapper.Map<List<UserDto>>(users);
-        return ApiResponse<List<UserDto>>.Success(usersDto);
-    }
-
-    public ApiResponse<UserDto> GetById(int id)
-    {
-        var user = _context.Users.Include(u => u.Role).FirstOrDefault(u => u.Id == id);
-        if (user == null) return ApiResponse<UserDto>.Failure("Nie znaleziono użytkownika", HttpStatusCode.Unauthorized);
-
-        var dto = _mapper.Map<UserDto>(user);
-
-        return ApiResponse<UserDto>.Success(dto);
-    }
-    public void Delete(string email)
-    {
-        var user = _context.Users.FirstOrDefault(u => u.Email == email);
-        if (user == null) return;
-
-        _context.Users.Remove(user);
-        _context.SaveChanges();
+        return content;
     }
 }
-
